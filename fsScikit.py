@@ -4,6 +4,7 @@ import time
 from pandas import DataFrame
 from sklearn.cross_validation import train_test_split
 from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.naive_bayes import MultinomialNB
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn import svm
@@ -12,25 +13,27 @@ from sklearn import metrics
 from sklearn.feature_selection import RFE
 from sklearn.feature_selection import RFECV
 from sklearn.svm import LinearSVC
-
-df = pd.read_csv('dataset/cobacektrain.csv', sep=',')
-df2 = pd.read_csv('dataset/cobatest.csv', sep=',')
+from sklearn.svm import SVR
+import matplotlib.pyplot as plt
+start_time = time.time()
+df = pd.read_csv('datasetfixv3/trainingsetfix.csv', sep=',')
+df2 = pd.read_csv('datasetfixv3/testingsetfix.csv', sep=',')
 
 X_train = df.text
 y_train = df.is_kelas
 X_test = df2.text
 y_test = df2.is_kelas
 
-vect = CountVectorizer()
-X_train_dtm = vect.fit_transform(X_train)
+vect = TfidfVectorizer(min_df=1)
+X_train_dtm = vect.fit_transform(X_train.values.astype('U'))
 # print(X_train_dtm)
-X_test_dtm = vect.transform(X_test)
+X_test_dtm = vect.transform(X_test.values.astype('U'))
 # print(X_test_dtm)
 
 ##### USING MNB #####
 
-nb = MultinomialNB()
-# rfe = RFECV(estimator = nb, cv = 20, scoring="accuracy")
+# nb = MultinomialNB()
+# rfe = RFECV(estimator = nb, cv = 10, scoring="accuracy")
 # rfe = rfe.fit(X_train_dtm, y_train)
 # print("Optimal number of features : %d" % rfe.n_features_)
 
@@ -44,7 +47,7 @@ nb = MultinomialNB()
 
 ##### END USING KNN #####
 
-##### USING SVM #####
+#### USING SVM #####
 
 svr = LinearSVC()
 # svr = svm.SVC(kernel="rbf",C=3.0,gamma=0.05)
@@ -52,13 +55,53 @@ rfe = RFECV(estimator = svr, cv = 5, scoring="accuracy")
 rfe = rfe.fit(X_train_dtm, y_train)
 print("Optimal number of features : %d" % rfe.n_features_)
 
-##### END USING SVM #####
+#### END USING SVM #####
+
+# ### USING SVM - VERSION 2 ###
+# estimator = LinearSVC(C=3.0, dual=True)
+# rfe = RFE(estimator, 9266, step=40)
+# rfe = rfe.fit(X_train_dtm, y_train)
+# #### END USING SVM  - VERSION 2#####
 
 # print(rfe.support_)
 # print(rfe.ranking_)
 
 
 y_pred_class = rfe.predict(X_test_dtm)
+# misData = [teks
+#           for teks, truth, prediction in
+#           zip(X_test, y_test, y_pred_class)
+#           if truth != prediction]
+
+
+# misDataTeks = [teks
+#           for teks, truth, prediction in
+#           zip(X_test, y_test, y_pred_class)
+#           if truth != prediction]
+# misDataTruth = [truth
+#           for teks, truth, prediction in
+#           zip(X_test, y_test, y_pred_class)
+#           if truth != prediction]
+# misDataPred = [prediction
+#           for teks, truth, prediction in
+#           zip(X_test, y_test, y_pred_class)
+#           if truth != prediction]
+# misDFTeks = pd.DataFrame(misDataTeks)
+# misDFTruth = pd.DataFrame(misDataTruth)
+# misDFPred = pd.DataFrame(misDataPred)
+
+
+# misDF = pd.DataFrame(misData)
+# misDF.to_csv("aniesDesError5.csv")
+# misDFTeks.to_csv("aniesDesError5Teks.csv")
+# misDFTruth.to_csv("aniesDesError5Truth.csv")
+# misDFPred.to_csv("aniesDesError5Pred.csv")
 print(metrics.accuracy_score(y_test, y_pred_class))
 print(y_test.value_counts())
 print(metrics.confusion_matrix(y_test, y_pred_class))
+print("--- %s seconds ---" % (time.time() - start_time))
+# plt.figure()
+# plt.xlabel("Number of features selected")
+# plt.ylabel("CV Score")
+# plt.plot(range(1, len(rfe.grid_scores_) + 1), rfe.grid_scores_)
+# plt.show()
