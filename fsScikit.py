@@ -16,8 +16,9 @@ from sklearn.svm import LinearSVC
 from sklearn.svm import SVR
 import matplotlib.pyplot as plt
 start_time = time.time()
-df = pd.read_csv('datasetfixv3/trainingsetfix.csv', sep=',')
-df2 = pd.read_csv('datasetfixv3/testingsetfix.csv', sep=',')
+df = pd.read_csv('dataset_iseng/training.csv', sep=',')
+print(df.columns)
+df2 = pd.read_csv('dataset_iseng/testing.csv', sep=',')
 
 X_train = df.text
 y_train = df.is_kelas
@@ -49,11 +50,16 @@ X_test_dtm = vect.transform(X_test.values.astype('U'))
 
 #### USING SVM #####
 
-svr = LinearSVC()
+svr = LinearSVC(C=1.0, multi_class='ovr')
+svr = svr.fit(X_train_dtm, y_train)
+print(svr.intercept_)
+print(svr.decision_function(X_test_dtm))
+print(svr.predict(X_test_dtm))
+
 # svr = svm.SVC(kernel="rbf",C=3.0,gamma=0.05)
-rfe = RFECV(estimator = svr, cv = 5, scoring="accuracy")
-rfe = rfe.fit(X_train_dtm, y_train)
-print("Optimal number of features : %d" % rfe.n_features_)
+# rfe = RFECV(estimator = svr, cv = 5, scoring="accuracy")
+# rfe = rfe.fit(X_train_dtm, y_train)
+# print("Optimal number of features : %d" % rfe.n_features_)
 
 #### END USING SVM #####
 
@@ -66,8 +72,9 @@ print("Optimal number of features : %d" % rfe.n_features_)
 # print(rfe.support_)
 # print(rfe.ranking_)
 
+# jangan lupa di uncomment
+# y_pred_class = rfe.predict(X_test_dtm)
 
-y_pred_class = rfe.predict(X_test_dtm)
 # misData = [teks
 #           for teks, truth, prediction in
 #           zip(X_test, y_test, y_pred_class)
@@ -96,10 +103,13 @@ y_pred_class = rfe.predict(X_test_dtm)
 # misDFTeks.to_csv("aniesDesError5Teks.csv")
 # misDFTruth.to_csv("aniesDesError5Truth.csv")
 # misDFPred.to_csv("aniesDesError5Pred.csv")
-print(metrics.accuracy_score(y_test, y_pred_class))
-print(y_test.value_counts())
-print(metrics.confusion_matrix(y_test, y_pred_class))
-print("--- %s seconds ---" % (time.time() - start_time))
+
+# jangan lupa di uncomment
+# print(metrics.accuracy_score(y_test, y_pred_class))
+# print(y_test.value_counts())
+# print(metrics.confusion_matrix(y_test, y_pred_class))
+# print("--- %s seconds ---" % (time.time() - start_time))
+
 # plt.figure()
 # plt.xlabel("Number of features selected")
 # plt.ylabel("CV Score")
